@@ -30,9 +30,9 @@ Each VM has 3 network cards, one is for ssh access and two to test dpdk, see [Va
 Use two different vbox host-only-network name: vboxnet0 and vboxnet1 to isolate traffic and avoid multi cast on different cards
 
 ```ascii
---------- SENDER ----------                   ------ RECEIVER -----------------
-pktgen | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | L2 fwd back
-pktgen | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | L2 fwd back
+--------- SEND ----------------------                   ------ RECEIVER --------------------------
+pktgen (port 0) | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | (port 0) L2 fwd back
+pktgen (port 1) | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | (port 1) L2 fwd back
 ```
 
 ## Run
@@ -56,6 +56,13 @@ Run ob both vms:
 - run `sudo /vagrant/run.sh dpdk-setup` and select option [15] to  install IGB UIO kernel driver [info](http://dpdk.org/doc/guides/linux_gsg/linux_drivers.html#linux-gsg-binding-kernel)
 
 ### Start l2fwd on receiver
+
+L2 forwards any RX packet to the adjacent port from the enabled portmask (eg. ports 1 and 2 forward into each other )
+
+Docs <http://dpdk.org/doc/guides/sample_app_ug/l2_forward_real_virtual.html>
+
+
+Execute on receiver
 
 - run `vagrant ssh receiver`
 - run `/vagrant/run.sh /vagrant/run.sh  dpdk-l2forward`

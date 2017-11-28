@@ -78,10 +78,10 @@ Vagrant.configure("2") do |config|
   # Vbox network https://www.virtualbox.org/manual/ch06.html#networkingmodes
   #
   # IMPORTANT: Use two different name: vboxnet0 and vboxnet1 to isolate traffic and avoid multicast on different cards
-  
-  # --------- SENDER ----------                   ------ RECEIVER -----------------
-  # pktgen | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | L2 fwd back
-  # pktgen | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | L2 fwd back
+  #
+  # --------- SEND ----------------------                   ------ RECEIVER --------------------------
+  # pktgen (port 0) | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | (port 0) L2 fwd back
+  # pktgen (port 1) | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | (port 1) L2 fwd back
   # 
   # I guess this emulate two direct connection between 
 
