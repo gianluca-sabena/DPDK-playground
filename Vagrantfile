@@ -79,7 +79,7 @@ Vagrant.configure("2") do |config|
   #
   # IMPORTANT: Use two different name: vboxnet0 and vboxnet1 to isolate traffic and avoid multicast on different cards
   #
-  # --------- SEND ----------------------                   ------ RECEIVER --------------------------
+  # --------- SENDER --------------------                   ------ RECEIVER --------------------------
   # pktgen (port 0) | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | (port 0) L2 fwd back
   # pktgen (port 1) | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | (port 1) L2 fwd back
   # 
