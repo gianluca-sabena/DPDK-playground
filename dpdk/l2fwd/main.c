@@ -78,17 +78,27 @@ static int mac_updating = 1;
 
 #define RTE_LOGTYPE_L2FWD RTE_LOGTYPE_USER1
 
-#define NB_MBUF   8192
+//#define NB_MBUF   8192
 
 #define MAX_PKT_BURST 32
 #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
 #define MEMPOOL_CACHE_SIZE 256
 
+// On vm need more time/buffer to avoid packet drops
+#define NB_MBUF   16384
+// #define MAX_PKT_BURST 16
+// #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
+// #define MEMPOOL_CACHE_SIZE 256
+
+
 /*
  * Configurable number of RX/TX ring descriptors
  */
-#define RTE_TEST_RX_DESC_DEFAULT 128
-#define RTE_TEST_TX_DESC_DEFAULT 512
+//#define RTE_TEST_RX_DESC_DEFAULT 128
+//#define RTE_TEST_TX_DESC_DEFAULT 512
+#define RTE_TEST_RX_DESC_DEFAULT 4096
+#define RTE_TEST_TX_DESC_DEFAULT 4096
+
 static uint16_t nb_rxd = RTE_TEST_RX_DESC_DEFAULT;
 static uint16_t nb_txd = RTE_TEST_TX_DESC_DEFAULT;
 
@@ -120,7 +130,7 @@ static const struct rte_eth_conf port_conf = {
 		.hw_ip_checksum = 0, /**< IP checksum offload disabled */
 		.hw_vlan_filter = 0, /**< VLAN filtering disabled */
 		.jumbo_frame    = 0, /**< Jumbo Frame Support disabled */
-		.hw_strip_crc   = 0, /**< CRC stripped by hardware */
+		.hw_strip_crc   = 1, /**< CRC stripped by hardware */
 	},
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,
@@ -191,15 +201,17 @@ static void
 l2fwd_mac_updating(struct rte_mbuf *m, unsigned dest_portid)
 {
 	struct ether_hdr *eth;
-	void *tmp;
+	void *tmpDest, *tmpSrc;
 
 	eth = rte_pktmbuf_mtod(m, struct ether_hdr *);
 
 	/* 02:00:00:00:00:xx */
-	tmp = &eth->d_addr.addr_bytes[0];
+	tmpDest = &eth->d_addr.addr_bytes[0];
+	tmpSrc = &eth->s_addr.addr_bytes[0];
 	// *((uint64_t *)tmp) = 0x000000000002 + ((uint64_t)dest_portid << 40);
   // Set forward to vagrant sender MAC address
-	*((uint64_t *)tmp) = 0x080020000001 ;
+	*((uint64_t *)tmpDest) = 0x080020000001 ;
+	*((uint64_t *)tmpSrc) = 0x080020000003 ;
 	/* src addr */
 	ether_addr_copy(&l2fwd_ports_eth_addr[dest_portid], &eth->s_addr);
 }
@@ -476,7 +488,7 @@ l2fwd_parse_args(int argc, char **argv)
 		argv[optind-1] = prgname;
 
 	ret = optind-1;
-	optind = 0; /* reset getopt lib */
+	optind = 1; /* reset getopt lib */
 	return ret;
 }
 

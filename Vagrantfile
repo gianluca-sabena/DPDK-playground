@@ -54,7 +54,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     sudo yum update -y
     sudo yum groupinstall -y "Development Tools"
-    sudo yum install -y  net-tools nmap-ncat libpcap-devel
+    sudo yum install -y  net-tools nmap-ncat libpcap-devel wget pciutils lshw
     # Exclude cpu 2,3 from kernel scheduler
     #   - https://wiki.centos.org/HowTos/Grub2
     # if ! grep isolcpus /etc/default/grub > /dev/null ; then
@@ -74,22 +74,28 @@ Vagrant.configure("2") do |config|
 
 
   # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
   # See supported network https://github.com/mitchellh/vagrant/blob/master/plugins/providers/virtualbox/action/network.rb#L65
   # Vbox network https://www.virtualbox.org/manual/ch06.html#networkingmodes
+  #
+  # IMPORTANT: Use two different name: vboxnet0 and vboxnet1 to isolate traffic and avoid multicast on different cards
+  
+  # --------- SENDER ----------                   ------ RECEIVER -----------------
+  # pktgen | -> mac:080020000001 -> (vboxnet0) ->  mac:080020000003 -> | L2 fwd back
+  # pktgen | <- mac:080020000002 <- (vboxnet1) <-  mac:080020000004 <- | L2 fwd back
+  # 
+  # I guess this emulate two direct connection between 
 
   config.vm.define "sender" do |sender|
-    #sender.vm.box = "sender"0200000000
+    #sender.vm.box = "sender"
     sender.vm.network "private_network", mac: "080020000001",   ip: "10.0.20.101", name: "vboxnet0", nic_type: "82545EM" #, auto_config: false, type: "static"
-    sender.vm.network "private_network", mac: "080020000002",   ip: "10.0.20.102", name: "vboxnet0", nic_type: "82545EM" #, auto_config: false, type: "static"
+    sender.vm.network "private_network", mac: "080020000002",   ip: "10.0.50.102", name: "vboxnet1", nic_type: "82545EM" #, auto_config: false, type: "static"
 
   end
 
   config.vm.define "receiver" do |receiver|
     #receiver.vm.box = "receiver"
     receiver.vm.network "private_network", mac: "080020000003",   ip: "10.0.20.103", name: "vboxnet0", nic_type: "82545EM" #, auto_config: false, type: "static"
-    receiver.vm.network "private_network", mac: "080020000004",   ip: "10.0.20.104", name: "vboxnet0", nic_type: "82545EM" #, auto_config: false, type: "static"
+    receiver.vm.network "private_network", mac: "080020000004",   ip: "10.0.50.104", name: "vboxnet1", nic_type: "82545EM" #, auto_config: false, type: "static"
 
   end
 end
