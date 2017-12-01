@@ -61,11 +61,12 @@ L2 forwards any RX packet to the adjacent port from the enabled portmask (eg. po
 
 Docs <http://dpdk.org/doc/guides/sample_app_ug/l2_forward_real_virtual.html>
 
-
 Execute on receiver
 
 - run `vagrant ssh receiver`
 - run `/vagrant/run.sh /vagrant/run.sh  dpdk-l2forward`
+
+Note: Parameter `-p port mask` allow to forward back on same port or to a different port [See run.sh dpdk-l2forward function](./run.sh)
 
 ### Start pktgen on sender
 

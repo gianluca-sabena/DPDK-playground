@@ -16,7 +16,7 @@ set -o pipefail # exit on any errors in piped commands
 # @info:	current version
 declare VERSION="1.0.0"
 
-export BASE_PATH="/vagrant"
+export BASE_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export TMP_PATH="${BASE_PATH}/tmp"
 
 # Attention to compatibility matrix!!!
@@ -30,7 +30,7 @@ export RTE_FOLDER="dpdk-stable-${RTE_VERSION}"
 export RTE_TARGET="x86_64-native-linuxapp-gcc"
 export RTE_SDK="${TMP_PATH}/${RTE_FOLDER}"
 export PKTGEN_VERSION="3.3.4"
-export DESTDIR="/opt/dpdk-${RTE_VERSION}"
+export DESTDIR="${BASE_PATH}/bin/${RTE_VERSION}"
 
 # @info:    Parses and validates the CLI arguments
 # @args:	Global Arguments $@
@@ -69,7 +69,7 @@ function parseCli(){
         case $key in
             
             info)
-                echo " - List network"
+                echo " -------- List network"
                 nmcli
                 nmcli device show
                 echo " List hardware cards"
@@ -114,11 +114,14 @@ function parseCli(){
             dpdk-l2forward)
                 echo " - Compile dpdk-l2forward"
                 dpdkInit
-                cd ${BASE_PATH}/dpdk/l2fwd
+                cd ${BASE_PATH}/l2fwd
                 make clean
                 make
-                # attach l2forward to port 1 (port mask 0x2) -p 0x3
-                ${BASE_PATH}/dpdk/l2fwd/build/app/l2fwd --file-prefix l2forward  --log-level=8 --socket-mem 512 -n 4 -- -q 8 -p 0x3 --mac-updating
+                # attach l2forward
+                # mask -p 0x3 (bit 11) = enable 0 and 1
+                # mask -p 0x2 (bit 10) = enable olny port 1
+                # mask -p 0x1 (bit 01) = enable olny port 0
+                ${BASE_PATH}/l2fwd/build/app/l2fwd --file-prefix l2forward  --log-level=8 --socket-mem 512 -n 4 -- -q 8 -p 0x1 --mac-updating
             ;;
             
             pktgen-install)
@@ -146,8 +149,6 @@ function parseCli(){
                 reset
             ;;
             
-            
-            
             -v | --version) echo "Version: ${VERSION}" exit 0 ;;
             -h | --help | *) usage; exit 0 ;;
         esac
@@ -155,11 +156,6 @@ function parseCli(){
     done
     
 }
-
-
-
-
-
 
 function dpdkInit {
     # Set huge pages
